@@ -900,3 +900,40 @@ cards = {
         },
     },
 }
+
+tokens = {
+  {
+    'players': '>=4'
+    'red':   7,
+    'green': 7,
+    'blue':  7,
+    'white': 7,
+    'brown': 7,
+    'gold':  5,
+    'nobles': 5,
+  },
+  {
+    'players': '==2'
+    'red':   4,
+    'green': 4,
+    'blue':  4,
+    'white': 4,
+    'brown': 4,
+    'gold':  5,
+    'nobles': 4,
+  },
+  {
+    'players': '==3'
+    'red':   5,
+    'green': 5,
+    'blue':  5,
+    'white': 5,
+    'brown': 5,
+    'gold':  5,
+    'nobles': 3,
+  },
+}
+
+points_to_win = 15
+max_tokens_in_hand = 10
+max_reserve_cards = 3
