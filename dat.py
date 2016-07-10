@@ -937,3 +937,4 @@ modes = {
 points_to_win = 15
 max_tokens_in_hand = 10
 max_reserve_cards = 3
+
