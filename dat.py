@@ -1,3 +1,8 @@
+""" Contains raw static transcribed data copied from a purchased
+copy of the Splendor board game. It might be fun to be able to 
+tweak these values later.
+"""
+
 
 nobles = {
   1: {
@@ -903,7 +908,7 @@ cards = {
 
 modes = {
   1: {
-    'players': '>=4',
+    'players': 4,
     'red'    : 7,
     'green'  : 7,
     'blue'   : 7,
@@ -913,7 +918,7 @@ modes = {
     'nobles' : 5,
   },
   2: {
-    'players': '==2',
+    'players': 3,
     'red'    : 4,
     'green'  : 4,
     'blue'   : 4,
@@ -923,7 +928,7 @@ modes = {
     'nobles' : 4,
   },
   3: {
-    'players': '==3',
+    'players': 2,
     'red'    : 5,
     'green'  : 5,
     'blue'   : 5,
@@ -934,6 +939,7 @@ modes = {
   },
 }
 
+# define some static rules about the game.
 points_to_win = 15
 max_tokens_in_hand = 10
 max_reserve_cards = 3
