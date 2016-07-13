@@ -1,4 +1,5 @@
 from jinja2 import Template
+import random
 import components
 import dat
 
@@ -61,7 +62,13 @@ class Board():
         # instantiate cards inventory from data 
         self.cards_inventory = components.Cards()
         self.cards_inventory.load_cards(data.cards)
-        self.cards_inventory.cards_classify_sizes()
+        self.cards_small_active = components.Cards()
+        self.cards_medium_active = components.Cards()
+        self.cards_large_active = components.Cards()
+        self.cards_classify_sizes()
+        self.cards_active = [self.cards_small_active,self.cards_medium_active,self.cards_large_active]
+        self.shuffle_all(self.cards_active)
+
         self.base_board = self.initialize_base_board()
 
     def render(self):
@@ -97,22 +104,22 @@ class Board():
         base_board = {
             'chips_red': self.stack_chips_red.render(),
             'stack_large': '{:15}'.format('stacklarge'),
-            'card_large_1': self.cards_inventory.cards_large[0].render_card(),
-            'card_large_2': self.cards_inventory.cards_large[1].render_card(),
-            'card_large_3': self.cards_inventory.cards_large[2].render_card(),
-            'card_large_4': self.cards_inventory.cards_large[3].render_card(),
+            'card_large_1': self.cards_large_active.pull_and_render_card(),
+            'card_large_2': self.cards_large_active.pull_and_render_card(),
+            'card_large_3': self.cards_large_active.pull_and_render_card(),
+            'card_large_4': self.cards_large_active.pull_and_render_card(),
             'chips_white': self.stack_chips_white.render(),
             'stack_medium': '{:15}'.format('stackmedium'),
-            'card_medium_1': self.cards_inventory.cards_medium[0].render_card(),
-            'card_medium_2': self.cards_inventory.cards_medium[1].render_card(),
-            'card_medium_3': self.cards_inventory.cards_medium[2].render_card(),
-            'card_medium_4': self.cards_inventory.cards_medium[3].render_card(),
+            'card_medium_1': self.cards_medium_active.pull_and_render_card(),
+            'card_medium_2': self.cards_medium_active.pull_and_render_card(),
+            'card_medium_3': self.cards_medium_active.pull_and_render_card(),
+            'card_medium_4': self.cards_medium_active.pull_and_render_card(),
             'chips_blue': self.stack_chips_blue.render(),
             'stack_small': '{:15}'.format('stacksmall'),
-            'card_small_1': self.cards_inventory.cards_small[0].render_card(),
-            'card_small_2': self.cards_inventory.cards_small[1].render_card(),
-            'card_small_3': self.cards_inventory.cards_small[2].render_card(),
-            'card_small_4': self.cards_inventory.cards_small[3].render_card(),
+            'card_small_1': self.cards_large_active.pull_and_render_card(),
+            'card_small_2': self.cards_large_active.pull_and_render_card(),
+            'card_small_3': self.cards_large_active.pull_and_render_card(),
+            'card_small_4': self.cards_large_active.pull_and_render_card(),
             'chips_brown': self.stack_chips_brown.render(),
             'chips_green': self.stack_chips_green.render(),
             'chips_gold': self.stack_chips_gold.render(),
@@ -123,3 +130,21 @@ class Board():
             'player_4': 'p4',
             }
         return base_board
+    def cards_classify_sizes(self):
+        """ Build lists of Card() objects based
+        on their size class.
+        """
+        for card in self.cards_inventory.cards:
+            if card.size == 'small':
+                self.cards_small_active.cards.append(card)
+                self.cards_small_active.size = 'small'
+            elif card.size == 'medium':
+                self.cards_medium_active.cards.append(card)
+                self.cards_medium_active.size = 'medium'
+            elif card.size == 'large':
+                self.cards_large_active.cards.append(card)
+                self.cards_large_active.size = 'large'
+
+    def shuffle_all(self,list_of_cardstacks):
+        for cardstack in list_of_cardstacks:
+            random.shuffle(cardstack.cards)

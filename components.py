@@ -153,7 +153,7 @@ class Card():
         format_helper = TableFormat(attributes, values, self.dict_extend_values, self.dump_ignore_attrs)
         msg += format_helper.string_header
         return msg
-    def render_card(self):
+    def render(self):
         """ Render method that returns a formatted string.
         """
         fmt = "{0:6}{1:2} ({2:5}{3:5}{4:5}{5:5}{6:5})"
@@ -189,20 +189,42 @@ class Cards():
     """
     def __init__(self):
         self.cards = []
-        self.cards_small = []
-        self.cards_medium = []
-        self.cards_large = []
-    def cards_classify_sizes(self):
-        """ Build lists of Card() objects based
-        on their size class.
+        self.size = ''
+
+    def dumpself_cards(self):
+        """ Method for dumping all cards in a table format for 
+        development debugging. 
         """
+        msg = (self.cards[0].tableformat_header() + '\n')
         for card in self.cards:
-            if card.size == 'small':
-                self.cards_small.append(card)
-            elif card.size == 'medium':
-                self.cards_medium.append(card)
-            elif card.size == 'large':
-                self.cards_large.append(card)
+            msg += (card.dumpself_tableformat() + '\n')
+        return msg
+    def load_cards(self,data):
+        """ Method for loading cards from the data file.
+        """
+        for size in data:
+            for card in data.get(size):
+                n = Card(uid=card,
+                         iden=data.get(size).get(card).get('iden'),
+                         size=size,
+                         points=data.get(size).get(card).get('points'),
+                         green=data.get(size).get(card).get('green'),
+                         blue=data.get(size).get(card).get('blue'),
+                         white=data.get(size).get(card).get('white'),
+                         red=data.get(size).get(card).get('red'),
+                         brown=data.get(size).get(card).get('brown'),
+                        )
+                self.cards.append(n)
+    def pull_and_render_card(self):
+        r = self.cards.pop()
+        return r.render()
+
+
+
+
+class Dummy_Old():
+    def __init__(self):
+        pass
     def stats_color_spread(self):
         """ Method for getting some card statistics. 
         This is just interesting to see and not used
@@ -265,32 +287,3 @@ class Cards():
         msg += fmt.format(*content_str)
 
         return(msg)
-    def dumpself_cards(self):
-        """ Method for dumping all cards in a table format for 
-        development debugging. 
-        """
-        msg = (self.cards[0].tableformat_header() + '\n')
-        for card in self.cards:
-            msg += (card.dumpself_tableformat() + '\n')
-        return msg
-    def load_cards(self,data):
-        """ Method for loading cards from the data file.
-        """
-        for size in data:
-            for card in data.get(size):
-                n = Card(uid=card,
-                         iden=data.get(size).get(card).get('iden'),
-                         size=size,
-                         points=data.get(size).get(card).get('points'),
-                         green=data.get(size).get(card).get('green'),
-                         blue=data.get(size).get(card).get('blue'),
-                         white=data.get(size).get(card).get('white'),
-                         red=data.get(size).get(card).get('red'),
-                         brown=data.get(size).get(card).get('brown'),
-                        )
-                self.cards.append(n)
-
-
-
-
-
