@@ -1,7 +1,135 @@
 import dat
 import random
+import unittest
+import copy
 from jinja2 import Template
 from TableFormat import TableFormat
+
+register = {'gold': 0,
+            'red': 0,
+            'green': 0,
+            'brown': 0,
+            'blue': 0,
+            'white': 0,
+            }
+
+mappings_shortnames = {
+            'green': 'gr-',
+            'white': 'wh-',
+            'blue': 'bl-',
+            'brown': 'br-',
+            'red': 'rd-',
+            'gold': 'go-'
+            }
+
+class PlayerBank():
+
+    def __init__(self):
+        # set up purchase power registers
+        self.pp_chips = copy.deepcopy(register)
+        self.pp_deck = copy.deepcopy(register)
+        self.pp_total = copy.deepcopy(register)
+
+    def add_chip(self,color=None,quantity=None):
+        if quantity == None:
+            quantity = 1
+        for p in self.pp_chips:
+            if p == color:
+                self.pp_chips[p] += quantity
+        self.recount()
+
+    def recount(self):
+        for p in self.pp_chips:
+            self.pp_total[p] = self.pp_chips[p] + self.pp_deck[p]
+
+    def can_afford(self,card):
+        color_props = [x for x in dir(card) if x in register]
+        cost_register = copy.deepcopy(register)
+        for prop in color_props:
+            cost_register[prop] = getattr(card,prop)
+        can_afford = True
+        for p in self.pp_total:
+            if self.pp_total.get(p) < cost_register.get(p):
+                can_afford = False
+        return(can_afford)
+    def purchase_card(self,card):
+        return_value = False
+        if self.can_afford(card):
+            try:
+                color_props = [x for x in dir(card) if x in register]
+                cost_register = copy.deepcopy(register)
+                for prop in color_props:
+                    cost_register[prop] = getattr(card,prop)
+                # modify the cost register based on how many deck cards
+                for p in cost_register:
+                    cost_register[p] -= self.pp_deck.get(p)
+                    if cost_register[p] < 0:
+                        cost_register[p] = 0
+                # now take the rest from chips
+                for p in cost_register:
+                    self.pp_chips[p] -= cost_register.get(p)
+            except Exception as e:
+                msg = ("Exception in purchase_card: " + str(e))
+                # print(msg)
+            # now add value of iden to pp_deck
+            for p in self.pp_deck:
+                if p == card.iden:
+                    self.pp_deck[p] += 1
+        self.recount()
+        return return_value
+    def render(self):
+        fmt = '( {0:5}{1:5}{2:5}{3:5}{4:5}{5:5})'
+        rows = {}
+        for j,pp_register in enumerate([self.pp_deck, self.pp_chips, self.pp_total]):
+            vals = []
+            for i,key in enumerate(pp_register):
+                val = pp_register.get(key)
+                sn = ''
+                for mapping in mappings_shortnames:
+                    if mapping == key:
+                        sn = mappings_shortnames.get(mapping)
+                vals.append('%s%s' % (sn,val))
+            if j == 0:
+                # means it's deck which needs no gold 
+                vals[vals.index('go-0')] = '    '
+            current_row = 'row' + str(j)
+            rows[current_row] = fmt.format(*vals)
+        jtpl_msg = """
+deck : {{row0}}
+chips: {{row1}}
+total: {{row2}}
+        """
+        tpl = Template(jtpl_msg)
+        return(str(tpl.render(rows)))
+
+
+
+
+class Player():
+    def __init__(self,data):
+        self.name = 'bob'
+        self.deck = []
+        self.reserved = []
+        self.points = 0
+        self.bank = PlayerBank()
+        self.points_to_win = data.points_to_win
+        self.max_tokens_in_hand = data.max_tokens_in_hand
+        self.max_reserve_cards = data.max_reserve_cards
+    def takes_card(self,card):
+        if self.bank.can_afford(card):
+            if self.bank.purchase_card(card):
+                self.deck.append(card)
+        elif len(self.reserved) < self.max_reserve_cards:
+            self.reserved.append(card)
+            self.bank.add_chip(color='gold')
+    def render(self):
+        jtpl_msg = """
+{{name}} 
+{{bank}}"""
+        bank = self.bank.render()
+        tpl = Template(jtpl_msg)
+        return str(tpl.render(name=self.name, bank=bank))
+
 
 class Noble():
     """ Basic class for a noble card.
@@ -91,6 +219,10 @@ class Chips():
         """
         msg = '{0:2}-{1:2}'.format(self.color_short_name,self.remaining)
         return msg
+
+def ChipsAll():
+    def __init__(self):
+        self.stacks = []
 
 
 class Card():
@@ -287,3 +419,5 @@ class Dummy_Old():
         msg += fmt.format(*content_str)
 
         return(msg)
+
+

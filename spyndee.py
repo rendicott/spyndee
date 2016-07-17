@@ -1,7 +1,7 @@
 """ This is the main method. Used to orchestrate
 the building of the board and components.
 """
-
+import unittest
 import components
 import dat
 import board
@@ -25,4 +25,5 @@ def main():
     print b.render()
 
 if __name__ == '__main__':
+    #unittest.main()  
     main()

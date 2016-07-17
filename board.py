@@ -10,17 +10,17 @@ NOBLE----{{ noble }}{% endfor %}
 
 
                    {{stack_large}} | {{card_large_1}} | {{card_large_2 }} | {{card_large_3 }} | {{card_large_4}}
-{{chips_red}}
+{{chips_0}}
 
-{{chips_white}}              {{stack_medium}} | {{card_medium_1}} | {{card_medium_2 }} | {{card_medium_3 }} | {{card_medium_4}}
+{{chips_1}}              {{stack_medium}} | {{card_medium_1}} | {{card_medium_2 }} | {{card_medium_3 }} | {{card_medium_4}}
 
-{{chips_blue}}
+{{chips_2}
                    {{stack_small}} | {{card_small_1}} | {{card_small_2 }} | {{card_small_3 }} | {{card_small_4}}
-{{chips_brown}}
+{{chips_3}
 
-{{chips_green}}
+{{chips_4}
 
-{{chips_gold}}
+{{chips_5}
 
 {{ player_1 }} {{player_2 }} {{player_3}} {{player_4}}
 
@@ -48,13 +48,9 @@ class Board():
         self.mode_nobles = 5
         # set actual chip counts based on game mode (i.e., num of players)
         self.mode_set(data)
-        # nwo build the chip stacks
-        self.stack_chips_red = components.Chips('red','rd',self.mode_chips_red)
-        self.stack_chips_white = components.Chips('white','wh',self.mode_chips_white)
-        self.stack_chips_green = components.Chips('green','gr',self.mode_chips_green)
-        self.stack_chips_brown = components.Chips('brown','br',self.mode_chips_brown)
-        self.stack_chips_gold = components.Chips('gold','go',self.mode_chips_gold)
-        self.stack_chips_blue = components.Chips('blue','bl',self.mode_chips_blue)
+        # now build the chip stacks
+        self.chips = components.ChipsAll()
+        self.initialize_chips()
         # instantiate nobles inventory from data
         self.nobles = components.Nobles(self.mode_nobles)
         self.nobles.load_nobles(data.nobles)
@@ -71,6 +67,13 @@ class Board():
 
         self.base_board = self.initialize_base_board()
 
+    def initialize_chips(self):
+        self.chips.stacks.append(components.Chips('red','rd',self.mode_chips_red))
+        self.chips.stacks.append(components.Chips('white','wh',self.mode_chips_white))
+        self.chips.stacks.append(components.Chips('green','gr',self.mode_chips_green))
+        self.chips.stacks.append(components.Chips('brown','br',self.mode_chips_brown))
+        self.chips.stacks.append(components.Chips('gold','go',self.mode_chips_gold))
+        self.chips.stacks.append(components.Chips('blue','bl',self.mode_chips_blue))
     def render(self):
         """ Method for rendering the board. For now just text. 
         """
@@ -148,3 +151,4 @@ class Board():
     def shuffle_all(self,list_of_cardstacks):
         for cardstack in list_of_cardstacks:
             random.shuffle(cardstack.cards)
+
