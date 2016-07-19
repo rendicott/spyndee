@@ -29,6 +29,13 @@ class PlayerBank():
         self.pp_chips = copy.deepcopy(register)
         self.pp_deck = copy.deepcopy(register)
         self.pp_total = copy.deepcopy(register)
+    def has_three_gold(self):
+        # returns True if player already has three gold
+        # false otherwise
+        if self.pp_chips.get('gold') >= 3:
+            return True
+        else:
+            return False
 
     def add_chip(self,color=None,quantity=None):
         if quantity == None:
@@ -42,19 +49,84 @@ class PlayerBank():
         for p in self.pp_chips:
             self.pp_total[p] = self.pp_chips[p] + self.pp_deck[p]
 
-    def can_afford(self,card):
+    def allocate_gold(self,missing):
+        ''' Based on what chips are missing we allocate what
+        gold we have. Returns a register with the amount of
+        each color to allocate with gold or returns None
+        if this is not possible.
+        '''
+        # if total missing chip cost is greater than the amount of gold we have
+        #  then we definately can't afford.
+        sum_of_missing = sum([x for x in missing.itervalues()])
+        print("SUM OF MISSING: " + str(sum_of_missing))
+        print("TOTAL GOLD: " + str(self.pp_total['gold']))
+        if sum_of_missing > self.pp_total['gold']:
+            return None
+        # make a gold allocation register
+        gar = copy.deepcopy(register)
+        # take a copy of current gold so we don't actually take it
+        goldcount = copy.deepcopy(self.pp_total['gold'])
+        # keep a rotation count to protect from loops
+        rotations = 0
+        while sum_of_missing > 0 or goldcount > 0:
+            for color in missing:
+                if missing[color] > 0:
+                    gar[color] += 1
+                    goldcount -= 1
+                    missing[color] -= 1
+            rotations += 1
+            if rotations > 20:
+                print("OHNO<>TOOMANYROTATATIONS")
+                break
+        return gar
+
+    def can_afford(self,card,return_missing=None):
+        ''' Determines if a given card is affordable
+        by the player taking deck cards as well as
+        gold/wild chips into consideration. Returns
+        True or False. If the return_missing boolean
+        is set then a register of missing chips is
+        returned instead of a boolean.
+        '''
+        if return_missing is None:
+            return_missing = False
+        # find the properties of the card object that contain colors
         color_props = [x for x in dir(card) if x in register]
+        # make a new cost register dictionary 
         cost_register = copy.deepcopy(register)
+        # populate register with cost properties from card
         for prop in color_props:
             cost_register[prop] = getattr(card,prop)
-        can_afford = True
+        # default to afford False
+        can_afford = False
+        needs_gold = False
+        missing = {}
+        # loop through current purchase power and find out what's missing
         for p in self.pp_total:
             if self.pp_total.get(p) < cost_register.get(p):
-                can_afford = False
+                missing[p] = cost_register.get(p) - self.pp_total.get(p)
+        print("MISSING: " + str(missing))
+        if return_missing:
+            return missing
+        # if what's missing adds up to < 0 then we can definately afford
+        print("GAR: " + str(self.allocate_gold(missing)))
+        if sum([x for x in missing.itervalues()]) <= 0:
+            can_afford = True
+            needs_gold = False
+        elif self.allocate_gold(missing) is not None:
+            can_afford = True
+            needs_gold = True
+        else:
+            can_afford = False
+            needs_gold = False
+        return can_afford, needs_gold
+        
         return(can_afford)
     def purchase_card(self,card):
         return_value = False
-        if self.can_afford(card):
+        can_afford, needs_gold = self.can_afford(card)
+        print("CAN_AFFORD: %s, NEEDS_GOLD: %s" % (can_afford,needs_gold))
+        if can_afford:
             try:
                 color_props = [x for x in dir(card) if x in register]
                 cost_register = copy.deepcopy(register)
@@ -67,14 +139,36 @@ class PlayerBank():
                         cost_register[p] = 0
                 # now take the rest from chips
                 for p in cost_register:
-                    self.pp_chips[p] -= cost_register.get(p)
+                    while self.pp_chips[p] >= 1 and cost_register[p] >= 1:
+                        self.pp_chips[p] -= 1
+                        cost_register[p] -= 1
+
+                    
+                remaining_cost = sum([x for x in cost_register.itervalues()])
+                print("REMAINING_COST: %s" % str(remaining_cost))
+                if needs_gold and remaining_cost > 0:
+                    missing = self.can_afford(card, return_missing=True)
+                    gar = self.allocate_gold(card,missing)
+                    # now go through the gold allocation register and subtract from gold
+                    for color in gar:
+                        self.pp_total['gold'] -= gar[color]
+                        cost_register[color] -= gar[color]
+                    if self.pp_total['gold'] < 0:  # there was a problem
+                        return_value = False
+                # make sure cost_register is empty
+                if remaining_cost > 0:
+                    return_value = False
+                else:
+                    return_value = True
             except Exception as e:
                 msg = ("Exception in purchase_card: " + str(e))
-                # print(msg)
-            # now add value of iden to pp_deck
-            for p in self.pp_deck:
-                if p == card.iden:
-                    self.pp_deck[p] += 1
+                return_value = False
+                print(msg)
+            # now add value of iden to pp_deck if everything is good
+            if return_value:
+                for p in self.pp_deck:
+                    if p == card.iden:
+                        self.pp_deck[p] += 1
         self.recount()
         return return_value
     def render(self):
@@ -116,12 +210,23 @@ class Player():
         self.max_tokens_in_hand = data.max_tokens_in_hand
         self.max_reserve_cards = data.max_reserve_cards
     def takes_card(self,card):
-        if self.bank.can_afford(card):
+        can_afford, needs_gold = self.bank.can_afford(card)
+        if can_afford:
             if self.bank.purchase_card(card):
                 self.deck.append(card)
-        elif len(self.reserved) < self.max_reserve_cards:
-            self.reserved.append(card)
-            self.bank.add_chip(color='gold')
+        elif not can_afford and len(self.reserved) < self.max_reserve_cards:
+            if not self.bank.has_three_gold():
+                self.reserved.append(card)
+                self.bank.add_chip(color='gold')
+            else:
+                msg = "ERROR TOO MANY GOLD"
+                print(msg)
+    def takes_chip(self,color):
+        if not color == 'gold':
+            self.bank.add_chip(color)
+        else:
+            msg = "ERROR, MUST RESERVE CARD TO GET A GOLD"
+            print(msg)
     def render(self):
         jtpl_msg = """
 {{name}} 
