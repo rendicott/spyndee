@@ -10,7 +10,8 @@ num_players = 4
 
 def show_statistics(board):
     print(board.cards_inventory.stats_color_spread())
-    print(board.cards_inventory.stats_cost())
+    board.cards_classify_sizes()
+    print(board.stats_cost())
     print(board.cards_inventory.dumpself_cards())
 
 def main():
@@ -19,10 +20,10 @@ def main():
     b = board.Board(num_players,dat)
 
     # if you want you can see some debug stats about the board
-    #### show_statistics(b)
+    show_statistics(b)
 
     # give a quick display of the generated board
-    print b.render()
+    #print b.render()
 
 if __name__ == '__main__':
     #unittest.main()  

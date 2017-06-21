@@ -325,7 +325,7 @@ class Chips():
         msg = '{0:2}-{1:2}'.format(self.color_short_name,self.remaining)
         return msg
 
-def ChipsAll():
+class ChipsAll():
     def __init__(self):
         self.stacks = []
 
@@ -455,7 +455,47 @@ class Cards():
     def pull_and_render_card(self):
         r = self.cards.pop()
         return r.render()
-
+    def stats_color_spread(self):
+        """ Method for getting some card statistics. 
+        This is just interesting to see and not used
+        in gameplay.
+        """
+        msg = "---COLOR IDENTITY SPREAD ALL CARDS--\n"
+        cgreen = 0
+        cblue = 0
+        cwhite = 0
+        cred = 0
+        cbrown = 0
+        for card in self.cards:
+            if card.iden == 'green':
+                cgreen += 1
+            elif card.iden == 'blue':
+                cblue += 1
+            elif card.iden == 'white':
+                cwhite += 1
+            elif card.iden == 'red':
+                cred += 1
+            elif card.iden == 'brown':
+                cbrown += 1
+        header = ['green','blue','white','red','brown']
+        fmt = '{0:6}{1:6}{2:6}{3:6}{4:6}\n'
+        content = [cgreen,cblue,cwhite,cred,cbrown]
+        content_str = [str(x) for x in content]
+        msg += fmt.format(*header)
+        msg += fmt.format(*content_str)
+        return(msg)
+    def stats_avg_cost(self):
+        """ Method for getting some card statistics. 
+        This is just interesting to see and not used
+        in gameplay.
+        """
+        avg_cost = 0
+        total_cost = sum(x.cost_total() for x in self.cards)
+        try:
+            avg_cost = float(total_cost) / float(len(self.cards))
+        except:
+            pass
+        return avg_cost
 
 
 
@@ -524,5 +564,4 @@ class Dummy_Old():
         msg += fmt.format(*content_str)
 
         return(msg)
-
 

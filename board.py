@@ -6,21 +6,21 @@ import dat
 # jinja2 template for making a basic text board for debugging and development visualization
 jtpl_board = """
 {% for noble in nobles %}
-NOBLE----{{ noble }}{% endfor %}
+NOBLE----{{ noble }}
+{% endfor %}
 
-
-                   {{stack_large}} | {{card_large_1}} | {{card_large_2 }} | {{card_large_3 }} | {{card_large_4}}
+{{stack_large}} | {{card_large_1}} | {{card_large_2 }} | {{card_large_3 }} | {{card_large_4}}
 {{chips_0}}
 
 {{chips_1}}              {{stack_medium}} | {{card_medium_1}} | {{card_medium_2 }} | {{card_medium_3 }} | {{card_medium_4}}
 
-{{chips_2}
+{{chips_2}}
                    {{stack_small}} | {{card_small_1}} | {{card_small_2 }} | {{card_small_3 }} | {{card_small_4}}
-{{chips_3}
+{{chips_3}}
 
-{{chips_4}
+{{chips_4}}
 
-{{chips_5}
+{{chips_5}}
 
 {{ player_1 }} {{player_2 }} {{player_3}} {{player_4}}
 
@@ -65,7 +65,7 @@ class Board():
         self.cards_active = [self.cards_small_active,self.cards_medium_active,self.cards_large_active]
         self.shuffle_all(self.cards_active)
 
-        self.base_board = self.initialize_base_board()
+        #self.base_board = self.initialize_base_board()
 
     def initialize_chips(self):
         self.chips.stacks.append(components.Chips('red','rd',self.mode_chips_red))
@@ -147,8 +147,26 @@ class Board():
             elif card.size == 'large':
                 self.cards_large_active.cards.append(card)
                 self.cards_large_active.size = 'large'
+    def stats_cost(self):
+        """ Method for getting some card statistics. 
+        This is just interesting to see and not used
+        in gameplay.
+        """
+        msg = "----AVG # OF CHIPS COST PER CARD CATEGORY---\n"
+        avg_cost_small = self.cards_small_active.stats_avg_cost()
+        avg_cost_medium = self.cards_medium_active.stats_avg_cost()
+        avg_cost_large = self.cards_large_active.stats_avg_cost()
+
+        fmt = "{0:7}{1:7}{2:7}\n"
+        header = ['small','medium','large']
+        content = [avg_cost_small,avg_cost_medium,avg_cost_large]
+        content_str = [str('{:.2f}'.format(x)) for x in content]
+
+        msg += fmt.format(*header)
+        msg += fmt.format(*content_str)
+
+        return(msg)
 
     def shuffle_all(self,list_of_cardstacks):
         for cardstack in list_of_cardstacks:
             random.shuffle(cardstack.cards)
-
